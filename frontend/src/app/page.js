@@ -1,86 +1,178 @@
 "use client";
-import { Cloud, Sun, MapPin, CloudRain, Wind, Home, Lightbulb, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { CloudSun, Cloud, CloudRain, Droplets, Wind, MapPin, ChevronRight, Bug, Calendar, PlayCircle, Leaf, MessageSquare } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
+import { useAuth } from "@/hooks/useAuth";
+import { WEATHER_DUMMY } from "@/data/weatherDummy";
+import { FORUM_POSTS } from "@/data/forumDummy";
 
-export default function HomePage() {
-    const pathname = usePathname();
+// Dummy data for tips since we don't have a centralized tips store yet (using static from tips page for now as placeholder or reference)
+const RECENT_TIPS = [
+    {
+        id: 1,
+        title: "Cara Pemupukan Padi yang Tepat",
+        category: "Padi",
+        desc: "Panduan dosis dan waktu pemupukan untuk hasil maksimal."
+    },
+    {
+        id: 2,
+        title: "Mengatasi Hama Wereng Secara Alami",
+        category: "Hama",
+        desc: "Solusi organik untuk membasmi wereng tanpa pestisida kimia."
+    }
+];
+
+export default function Home() {
+    const { user } = useAuth();
+    const [currentWeather, setCurrentWeather] = useState(WEATHER_DUMMY.current);
+    const [forumHighlights, setForumHighlights] = useState([]);
+
+    useEffect(() => {
+        // Load recent forum posts
+        setForumHighlights(FORUM_POSTS.slice(0, 2));
+    }, []);
+
+    // Helper to get greeting
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 11) return "Selamat Pagi";
+        if (hour < 15) return "Selamat Siang";
+        if (hour < 18) return "Selamat Sore";
+        return "Selamat Malam";
+    };
 
     return (
-        <div className="min-h-screen pb-20">
+        <div className="min-h-screen bg-gray-50 pb-28"> 
             {/* Header */}
-            <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin size={16} />
-                        <span className="text-sm font-medium">Subang</span>
-                    </div>
-                </div>
-
-                {/* Current Weather */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 mb-8">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Sun className="text-yellow-500" size={48} />
-                            <div>
-                                <h1 className="text-4xl font-bold">32°C</h1>
-                                <p className="text-gray-600">Cerah</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 7 Day Forecast */}
-                <h2 className="font-bold text-lg mb-4">Prakiraan 7 Hari</h2>
-                <div className="flex gap-3 overflow-x-auto pb-4 mb-8">
-                    {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((day, idx) => (
-                        <div key={day} className="flex-shrink-0 bg-white border rounded-xl p-4 w-20 text-center">
-                            <p className="text-sm font-medium text-gray-500 mb-2">{day}</p>
-                            {idx % 2 === 0 ? <Sun className="text-yellow-500 mx-auto mb-2" size={24} /> : <Cloud className="text-gray-400 mx-auto mb-2" size={24} />}
-                            <p className="text-sm font-bold">35°/24°</p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Daily Tips */}
-                <h2 className="font-bold text-lg mb-4">Tips Harian</h2>
-                <div className="space-y-4">
-                    <div className="bg-white border rounded-xl p-4 flex items-start gap-4">
-                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <CloudRain className="text-red-500" size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-sm mb-1">Peringatan Pengendalian Hama</h3>
-                            <p className="text-xs text-gray-500">Waspada serangan wereng pada fase generatif...</p>
-                        </div>
-                    </div>
-                    <div className="bg-white border rounded-xl p-4 flex items-start gap-4">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Wind className="text-green-500" size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-sm mb-1">Waktu Irigasi Optimal</h3>
-                            <p className="text-xs text-gray-500">Gunakan sistem pengairan intermiten...</p>
+            <div className="bg-white p-6 pb-4">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <p className="text-sm text-gray-500 mb-1">{getGreeting()},</p>
+                        <h1 className="text-xl font-bold text-gray-900">{user?.name || "Petani Maju"}</h1>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+                            <MapPin size={14} className="text-green-600" />
+                            <span>{user?.kabupaten || "Lokasi Anda"}, {user?.kecamatan}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t h-16 flex items-center justify-around max-w-md mx-auto">
-                <Link href="/" className={`flex flex-col items-center gap-1 ${pathname === "/" ? "text-green-700" : "text-gray-400"}`}>
-                    <Home size={20} />
-                    <span className="text-xs">Beranda</span>
+            <div className="p-6 space-y-6">
+                
+                {/* Weather Summary Card */}
+                <Link href="/cuaca">
+                    <div className="bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+                        
+                        <div className="flex justify-between items-center relative z-10">
+                            <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <CloudSun size={24} className="text-yellow-300" />
+                                    <span className="text-sm font-medium opacity-90">Cuaca Hari Ini</span>
+                                </div>
+                                <div className="text-5xl font-bold mb-1">{currentWeather.temp}°C</div>
+                                <div className="text-sm font-medium opacity-90 flex items-center gap-2">
+                                    {currentWeather.condition}
+                                    <span className="w-1 h-1 rounded-full bg-white/60"></span>
+                                    <span className="flex items-center gap-1"><Droplets size={12}/> {currentWeather.rainChance}% Hujan</span>
+                                </div>
+                            </div>
+                            <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm group-hover:scale-110 transition-transform">
+                                <ChevronRight size={24} />
+                            </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-white/20 flex items-center justify-between text-xs opacity-80">
+                            <span>Lihat prakiraan lengkap</span>
+                            <span>Update: 10 menit yll</span>
+                        </div>
+                    </div>
                 </Link>
-                <Link href="/tips" className={`flex flex-col items-center gap-1 ${pathname === "/tips" ? "text-green-700" : "text-gray-400"}`}>
-                    <Lightbulb size={20} />
-                    <span className="text-xs">Tips</span>
-                </Link>
-                <Link href="/profil" className={`flex flex-col items-center gap-1 ${pathname === "/profil" ? "text-green-700" : "text-gray-400"}`}>
-                    <User size={20} />
-                    <span className="text-xs">Profil</span>
-                </Link>
-            </nav>
+
+                {/* Quick Access Grid */}
+                <div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <Link href="/cuaca" className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all flex flex-col items-center justify-center gap-2 aspect-square">
+                            <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                                <CloudSun size={32} />
+                            </div>
+                            <span className="text-sm font-bold text-gray-700">Cuaca</span>
+                        </Link>
+                        
+                        <Link href="/hama" className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all flex flex-col items-center justify-center gap-2 aspect-square">
+                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-600">
+                                <Bug size={32} />
+                            </div>
+                            <span className="text-sm font-bold text-gray-700">Info Hama</span>
+                        </Link>
+
+                        <Link href="/kalender" className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all flex flex-col items-center justify-center gap-2 aspect-square">
+                            <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-green-600">
+                                <Calendar size={32} />
+                            </div>
+                            <span className="text-sm font-bold text-gray-700">Kalender</span>
+                        </Link>
+
+                        <Link href="/video" className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all flex flex-col items-center justify-center gap-2 aspect-square">
+                            <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-purple-600">
+                                <PlayCircle size={32} />
+                            </div>
+                            <span className="text-sm font-bold text-gray-700">Video</span>
+                        </Link>
+                     </div>
+                </div>
+
+                {/* Tips Section */}
+                <div>
+                    <div className="flex justify-between items-center mb-3 px-1">
+                        <h2 className="text-sm font-bold text-gray-800">Tips Hari Ini</h2>
+                        <Link href="/tips" className="text-xs text-green-700 font-bold">Lihat Semua</Link>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6">
+                        {RECENT_TIPS.map(tip => (
+                            <Link href={`/tips/${tip.id}`} key={tip.id} className="min-w-[240px] bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-700 shrink-0">
+                                        <Leaf size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-gray-800 leading-tight mb-1">{tip.title}</h3>
+                                        <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">{tip.category}</span>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Forum Highlights */}
+                <div>
+                     <div className="flex justify-between items-center mb-3 px-1">
+                        <h2 className="text-sm font-bold text-gray-800">Diskusi Terbaru</h2>
+                        <Link href="/forum" className="text-xs text-green-700 font-bold">Lihat Forum</Link>
+                    </div>
+                    <div className="space-y-3">
+                        {forumHighlights.map(post => (
+                            <Link href={`/forum/${post.id}`} key={post.id} className="block bg-white border border-gray-100 p-4 rounded-xl shadow-sm active:scale-[0.99] transition-transform">
+                                <h3 className="text-sm font-bold text-gray-800 mb-1 line-clamp-1">{post.title || "Postingan Baru"}</h3>
+                                <p className="text-xs text-gray-500 line-clamp-2 mb-2">{post.content}</p>
+                                <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                                    <MessageSquare size={12} /> {post.commentsCount} Komentar
+                                    <span>• {post.timestamp}</span>
+                                </div>
+                            </Link>
+                        ))}
+                        {forumHighlights.length === 0 && (
+                             <div className="text-center py-4 bg-white rounded-xl border border-dashed border-gray-300">
+                                <p className="text-xs text-gray-500">Belum ada diskusi terbaru.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+            </div>
+            
+            <BottomNav />
         </div>
     );
 }

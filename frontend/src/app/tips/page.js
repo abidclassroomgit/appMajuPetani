@@ -3,6 +3,7 @@ import { Search, Home, Lightbulb, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import BottomNav from "@/components/BottomNav";
 
 export default function TipsPage() {
     const pathname = usePathname();
@@ -66,20 +67,7 @@ export default function TipsPage() {
             </div>
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t h-16 flex items-center justify-around max-w-md mx-auto">
-                <Link href="/" className={`flex flex-col items-center gap-1 ${pathname === "/" ? "text-green-700" : "text-gray-400"}`}>
-                    <Home size={20} />
-                    <span className="text-xs">Beranda</span>
-                </Link>
-                <Link href="/tips" className={`flex flex-col items-center gap-1 ${pathname === "/tips" ? "text-green-700" : "text-gray-400"}`}>
-                    <Lightbulb size={20} />
-                    <span className="text-xs">Tips</span>
-                </Link>
-                <Link href="/profil" className={`flex flex-col items-center gap-1 ${pathname === "/profil" ? "text-green-700" : "text-gray-400"}`}>
-                    <User size={20} />
-                    <span className="text-xs">Profil</span>
-                </Link>
-            </nav>
+            <BottomNav />
         </div>
     );
 }
