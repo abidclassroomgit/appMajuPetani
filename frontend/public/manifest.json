@@ -1,0 +1,22 @@
+{
+    "name": "PetaniMaju - Solusi Cerdas Pertanian",
+    "short_name": "PetaniMaju",
+    "description": "Aplikasi pendamping petani untuk manajemen cuaca dan pengetahuan pertanian",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#F4F7F4",
+    "theme_color": "#2D5A27",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
