@@ -8,16 +8,12 @@ import { useForum } from "@/hooks/useForum";
 export default function ForumPage() {
     const { posts, isLoaded, toggleLikePost, toggleBookmarkPost } = useForum();
     const [activeCategory, setActiveCategory] = useState("Semua");
-    const [sortBy, setSortBy] = useState("Terbaru");
-
+    
+    // Sort by timestamp desc (already done by SQL, but good to ensure)
     const filteredPosts = posts.filter(post => {
         if (activeCategory === "Semua") return true;
         return post.category === activeCategory;
     });
-
-    // Implement sort logic
-    // For simplicity in this step, we just use filteredPosts as is since dummy data is somewhat static
-    // Real app would sort by timestamp or likes count
 
     const CATEGORY_COLORS = {
         "Pertanyaan": "bg-blue-100 text-blue-700",
@@ -26,7 +22,7 @@ export default function ForumPage() {
         "Diskusi Umum": "bg-gray-100 text-gray-700"
     };
 
-    if (!isLoaded) return <div className="p-10 text-center">Memuat forum...</div>;
+    if (!isLoaded) return <div className="p-10 text-center text-gray-500">Memuat forum...</div>;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-24">

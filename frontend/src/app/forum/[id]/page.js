@@ -17,26 +17,27 @@ export default function ForumDetailPage() {
 
     useEffect(() => {
         const id = parseInt(params.id);
-        const foundPost = getPostById(id);
-        if (foundPost) {
-            setPost(foundPost);
-        }
-    }, [params.id, getPostById]); // Dependency on getPostById might trigger re-renders if hook returns new func instance, but okay for MVP
+        getPostById(id).then(foundPost => {
+            if (foundPost) {
+                setPost(foundPost);
+            }
+        });
+    }, [params.id]);
 
-    const handleSendComment = (e) => {
+    const handleSendComment = async (e) => {
         e.preventDefault();
         if (!commentText.trim()) return;
 
         setIsSending(true);
-        // Simulate network delay
-        setTimeout(() => {
-            addComment(post.id, commentText, user || {});
-            setCommentText("");
-            setIsSending(false);
-            // Refresh post data
-            const updated = getPostById(post.id);
-            setPost(updated);
-        }, 500);
+        
+        await addComment(post.id, commentText);
+        setCommentText("");
+        
+        // Refresh post data
+        const updated = await getPostById(post.id);
+        setPost(updated);
+        
+        setIsSending(false);
     };
 
     const handleShare = () => {

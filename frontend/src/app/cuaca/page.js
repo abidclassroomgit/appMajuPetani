@@ -4,18 +4,24 @@ import { useState, useEffect } from "react";
 import { WEATHER_DUMMY } from "@/data/weatherDummy";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
+import { useWeather } from "@/hooks/useWeather";
 
 export default function CuacaPage() {
     const { user } = useAuth();
-    const [weather, setWeather] = useState(WEATHER_DUMMY);
+    const { weather, loading, refreshWeather } = useWeather();
     const [isRefreshing, setIsRefreshing] = useState(false);
     
-    // Get location from user profile or default
-    const location = user?.kabupaten || "Lokasi Anda";
+    // Use weather name if available (from API), otherwise profile
+    const displayLocation = weather.current.name || user?.kabupaten || "Lokasi Anda";
 
-    const handleRefresh = () => {
+    const handleRefresh = async () => {
         setIsRefreshing(true);
-        setTimeout(() => setIsRefreshing(false), 1000); // Simulate refresh
+        // Clear cache to force new fetch
+        const cacheKey = `weather_${user?.kabupaten || 'Jakarta'}`;
+        localStorage.removeItem(cacheKey);
+        
+        await refreshWeather();
+        setIsRefreshing(false);
     };
 
     // Helper to get Icon component
@@ -34,11 +40,11 @@ export default function CuacaPage() {
         <div className="min-h-screen bg-gray-50 pb-24">
             
             {/* Header */}
-            <div className="bg-white p-6 pb-2 sticky top-0 z-10 shadow-sm">
+            <div className="bg-white p-6 pb-2 sticky top-0 z-50 shadow-sm">
                 <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2 text-gray-700">
                         <MapPin size={20} className="text-green-600" />
-                        <span className="font-bold text-lg">{location}</span>
+                        <span className="font-bold text-lg capitalize">{displayLocation.toLowerCase()}</span>
                     </div>
                     <button 
                         onClick={handleRefresh} 
@@ -47,7 +53,9 @@ export default function CuacaPage() {
                         <RefreshCw size={20} />
                     </button>
                 </div>
-                <p className="text-xs text-gray-400 ml-7">Senin, 23 Desember 2024</p>
+                <p className="text-xs text-gray-400 ml-7">
+                    {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
             </div>
 
             <div className="p-6 space-y-6">
@@ -114,24 +122,27 @@ export default function CuacaPage() {
                         <span className="text-xs font-normal text-blue-600">Lihat Semua</span>
                     </h2>
                     <div className="flex gap-3 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide">
-                        {weather.forecast.map((day, idx) => (
-                            <div 
-                                key={idx} 
-                                className={`flex-shrink-0 w-20 p-3 rounded-2xl border text-center flex flex-col items-center gap-2 ${
-                                    idx === 1 // Highlight current day (mock logic)
-                                        ? "bg-blue-50 border-blue-200 ring-1 ring-blue-300"
-                                        : "bg-white border-gray-100"
-                                }`}
-                            >
-                                <span className="text-xs font-medium text-gray-500">{day.day}</span>
-                                <span className="text-[10px] text-gray-400 mb-1">{day.date}</span>
-                                {getWeatherIcon(day.icon, 24, idx === 1 ? "text-blue-500" : "text-gray-400")}
-                                <div className="mt-1">
-                                    <span className="text-sm font-bold text-gray-800">{day.tempMax}°</span>
-                                    <span className="text-xs text-gray-400 block">{day.tempMin}°</span>
+                        {weather.forecast.map((day, idx) => {
+                            const isToday = day.date === new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                            return (
+                                <div 
+                                    key={idx} 
+                                    className={`flex-shrink-0 w-20 p-3 rounded-2xl border text-center flex flex-col items-center gap-2 ${
+                                        isToday 
+                                            ? "bg-blue-50 border-blue-200 ring-1 ring-blue-300"
+                                            : "bg-white border-gray-100"
+                                    }`}
+                                >
+                                    <span className="text-xs font-medium text-gray-500">{day.day}</span>
+                                    <span className="text-[10px] text-gray-400 mb-1">{day.date}</span>
+                                    {getWeatherIcon(day.icon, 24, isToday ? "text-blue-500" : "text-gray-400")}
+                                    <div className="mt-1">
+                                        <span className="text-sm font-bold text-gray-800">{day.tempMax}°</span>
+                                        <span className="text-xs text-gray-400 block">{day.tempMin}°</span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 

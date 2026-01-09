@@ -1,34 +1,71 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import { VIDEO_DUMMY } from '@/data/videoDummy';
 
 export function useVideo() {
-  const [bookmarkedVideos, setBookmarkedVideos] = useState([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+    const [bookmarks, setBookmarks] = useState([]);
+    const [videos, setVideos] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('petaniMaju_bookmarkedVideos');
-    if (saved) {
-      setBookmarkedVideos(JSON.parse(saved));
-    }
-    setIsLoaded(true);
-  }, []);
+    // Initial load for videos
+    useEffect(() => {
+        const fetchVideos = async () => {
+            try {
+                const { data: dbVideos, error } = await supabase
+                    .from('videos')
+                    .select('*')
+                    .order('upload_date', { ascending: false });
+                
+                if (error) throw error;
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('petaniMaju_bookmarkedVideos', JSON.stringify(bookmarkedVideos));
-    }
-  }, [bookmarkedVideos, isLoaded]);
+                if (dbVideos && dbVideos.length > 0) {
+                    setVideos(dbVideos);
+                } else {
+                    setVideos(VIDEO_DUMMY);
+                }
+            } catch (err) {
+                console.error("Error fetching videos:", err);
+                setVideos(VIDEO_DUMMY);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-  const toggleBookmark = (videoId) => {
-    if (bookmarkedVideos.includes(videoId)) {
-      setBookmarkedVideos(bookmarkedVideos.filter(id => id !== videoId));
-    } else {
-      setBookmarkedVideos([...bookmarkedVideos, videoId]);
-    }
-  };
+        fetchVideos();
+    }, []);
 
-  const isBookmarked = (videoId) => {
-    return bookmarkedVideos.includes(videoId);
-  };
+    // Load bookmarks (Local Storage for now, migrating to DB next phase)
+    useEffect(() => {
+        const saved = localStorage.getItem('petaniMaju_bookmarks');
+        if (saved) {
+            setBookmarks(JSON.parse(saved));
+        }
+    }, []);
 
-  return { toggleBookmark, isBookmarked, bookmarkedVideos };
+    // Save bookmarks
+    useEffect(() => {
+        localStorage.setItem('petaniMaju_bookmarks', JSON.stringify(bookmarks));
+    }, [bookmarks]);
+
+    const toggleBookmark = (videoId) => {
+        if (bookmarks.includes(videoId)) {
+            setBookmarks(bookmarks.filter(id => id !== videoId));
+        } else {
+            setBookmarks([...bookmarks, videoId]);
+        }
+    };
+
+    const isBookmarked = (videoId) => bookmarks.includes(videoId);
+
+    const getVideoById = (id) => {
+        return videos.find(v => v.id == id);
+    };
+
+    return {
+        videos,
+        isLoading,
+        isBookmarked,
+        toggleBookmark,
+        getVideoById
+    };
 }

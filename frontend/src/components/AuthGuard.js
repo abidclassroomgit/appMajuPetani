@@ -10,16 +10,18 @@ export default function AuthGuard({ children }) {
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        // Skip check for welcome page to prevent loops
-        if (pathname === "/welcome") {
+        // Safe pages that don't need auth
+        const publicPaths = ['/welcome', '/auth'];
+        
+        if (publicPaths.includes(pathname)) {
             setIsChecking(false);
             return;
         }
 
         if (!isLoading) {
             if (!isAuthenticated) {
-                // If not authenticated, redirect to welcome
-                router.push("/welcome");
+                // Redirect to Auth page (Login/Register)
+                router.push("/auth");
             }
             setIsChecking(false);
         }
@@ -27,8 +29,8 @@ export default function AuthGuard({ children }) {
 
     // Show loading state while checking
     if (isLoading || isChecking) {
-        // Don't show loading on welcome page, just render children
-        if (pathname === "/welcome") return <>{children}</>;
+        // Don't show loading on public pages
+        if (['/welcome', '/auth'].includes(pathname)) return <>{children}</>;
 
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">

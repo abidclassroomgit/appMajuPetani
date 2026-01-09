@@ -26,7 +26,7 @@ export const HAMA_PENYAKIT_DATA = [
       "Monitor populasi wereng sejak awal tanam"
     ],
     tanamanTerserang: ["Padi"],
-    imageUrl: "https://via.placeholder.com/400x300?text=Wereng+Coklat"
+    image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Brown_planthopper.jpg/640px-Brown_planthopper.jpg"
   },
   {
     id: 2,
@@ -55,7 +55,7 @@ export const HAMA_PENYAKIT_DATA = [
       "Gunakan benih sehat dan bersertifikat"
     ],
     tanamanTerserang: ["Padi"],
-    imageUrl: "https://via.placeholder.com/400x300?text=Blas+Daun"
+    image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Rice_blast.jpg/640px-Rice_blast.jpg"
   },
   {
     id: 3,
@@ -84,7 +84,7 @@ export const HAMA_PENYAKIT_DATA = [
       "Pergiliran tanaman dengan kacang-kacangan"
     ],
     tanamanTerserang: ["Jagung", "Padi", "Kedelai"],
-    imageUrl: "https://via.placeholder.com/400x300?text=Ulat+Grayak"
+    image_url: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Spodoptera_litura.jpg"
   },
   {
     id: 4,
@@ -113,7 +113,7 @@ export const HAMA_PENYAKIT_DATA = [
       "Pangkas daun tua dan ranting tidak produktif"
     ],
     tanamanTerserang: ["Cabai", "Tomat", "Terong"],
-    imageUrl: "https://via.placeholder.com/400x300?text=Antraknosa+Cabai"
+    image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Anthracnose_acervuli.jpg/640px-Anthracnose_acervuli.jpg"
   },
   {
     id: 5,
@@ -142,7 +142,7 @@ export const HAMA_PENYAKIT_DATA = [
       "Pagar keliling dengan seng setinggi 50cm"
     ],
     tanamanTerserang: ["Padi", "Jagung"],
-    imageUrl: "https://via.placeholder.com/400x300?text=Tikus+Sawah"
+    image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Field_rats_infesting_rice_plants_%2811058917815%29.jpg/640px-Field_rats_infesting_rice_plants_%2811058917815%29.jpg"
   },
   {
     id: 6,
@@ -171,6 +171,6 @@ export const HAMA_PENYAKIT_DATA = [
       "Bungkus buah sejak masih muda"
     ],
     tanamanTerserang: ["Cabai", "Tomat", "Jeruk", "Jambu"],
-    imageUrl: "https://via.placeholder.com/400x300?text=Lalat+Buah"
+    image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Bactrocera_dorsalis.jpg/640px-Bactrocera_dorsalis.jpg"
   }
 ];

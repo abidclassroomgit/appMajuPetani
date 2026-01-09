@@ -39,7 +39,7 @@ export default function CreatePostPage() {
         try {
             const newPost = {
                 author: {
-                    name: user?.name || "Petani", 
+                    name: user?.nama || "Petani", 
                     avatar: "👤",
                     location: user?.kabupaten || "Indonesia"
                 },
@@ -48,17 +48,24 @@ export default function CreatePostPage() {
                 content: content.trim(),
             };
 
-            // Simulate delay
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            const newId = addPost(newPost);
-            router.push(`/forum/${newId}`); // Redirect to new post
+            const newId = await addPost(newPost);
+
+            if (newId) {
+                // Redirect to Feed (Home) so user sees their post in the list
+                router.push('/forum'); 
+                router.refresh(); // Force refresh to show new data
+            } else {
+                setIsSubmitting(false);
+            }
             
         } catch (err) {
+            console.error(err);
             setError("Gagal membuat postingan. Silakan coba lagi.");
             setIsSubmitting(false);
         }
     };
+
+    if (!user) return <div className="min-h-screen flex items-center justify-center">Memuat...</div>;
 
     return (
         <div className="min-h-screen bg-white">

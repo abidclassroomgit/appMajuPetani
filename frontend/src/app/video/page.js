@@ -3,15 +3,16 @@ import { useState } from "react";
 import { Search, Play, Eye, Filter, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
-import { VIDEO_DUMMY } from "@/data/videoDummy";
+import { useVideo } from "@/hooks/useVideo";
 
 export default function VideoPage() {
+    const { videos, isLoading } = useVideo();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("Semua");
     const [activeDuration, setActiveDuration] = useState("Semua Durasi");
     const [sortBy, setSortBy] = useState("Terbaru");
 
-    const filteredVideos = VIDEO_DUMMY.filter(video => {
+    const filteredVideos = videos.filter(video => {
         // Search
         if (searchQuery && !video.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         
@@ -20,7 +21,7 @@ export default function VideoPage() {
         
         // Duration
         if (activeDuration !== 'Semua Durasi') {
-            const [minutes] = video.duration.split(':').map(Number);
+            const [minutes] = (video.duration || "0:00").split(':').map(Number);
             if (activeDuration === '< 5 menit' && minutes >= 5) return false;
             if (activeDuration === '5-10 menit' && (minutes < 5 || minutes > 10)) return false;
             if (activeDuration === '> 10 menit' && minutes <= 10) return false;
@@ -28,6 +29,10 @@ export default function VideoPage() {
         
         return true;
     });
+
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center text-green-700 font-bold">Memuat video...</div>;
+    }
 
     const sortedVideos = [...filteredVideos].sort((a, b) => {
         if (sortBy === 'Terbaru') return b.id - a.id; // Using ID as proxy for date
@@ -47,7 +52,7 @@ export default function VideoPage() {
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
             {/* Header */}
-            <div className="bg-white p-6 sticky top-0 z-10 shadow-sm">
+            <div className="bg-white p-6 sticky top-0 z-50 shadow-sm">
                 <div className="flex justify-between items-start mb-2">
                     <div>
                         <h1 className="text-xl font-bold flex items-center gap-2">
@@ -125,7 +130,7 @@ export default function VideoPage() {
                                 <div className="relative aspect-video bg-gray-200">
                                     {/* Thumbnail Placeholder logic if string URL fails, simpler to just use placeholder service in dummy */}
                                     <div className="absolute inset-0 bg-gray-300 animate-pulse group-hover:hidden" /> 
-                                    <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover relative z-10" />
+                                    <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover relative z-10" />
                                     
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors z-20">
                                         <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">

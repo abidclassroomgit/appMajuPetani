@@ -3,19 +3,31 @@ import { useState } from "react";
 import { Search, Bug, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
-import { HAMA_PENYAKIT_DATA } from "@/data/hamaDummy";
+import { useHama } from "@/hooks/useHama";
 
 export default function HamaPage() {
+    const { data: hamaList, isLoading } = useHama();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("Semua");
     const [activeSeverity, setActiveSeverity] = useState("Semua");
 
-    const filteredData = HAMA_PENYAKIT_DATA.filter(item => {
-        const matchesCategory = activeCategory === "Semua" || item.category === activeCategory;
-        const matchesSeverity = activeSeverity === "Semua" || item.severity === activeSeverity;
-        const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSeverity && matchesSearch;
+    const filteredData = hamaList.filter(item => {
+        const matchesCategory = activeCategory === "Semua" || item.type === activeCategory || (activeCategory === "Hama" && item.type === "Hama") || (activeCategory === "Penyakit" && item.type === "Penyakit") || (activeCategory === "Gulma" && item.type === "Gulma");
+        // Note: Logic adjustment needed because seeding mapped category->type. 
+        // Let's assume database 'type' matches filter category, or do robust check.
+        // Hama Dummy used 'category', DB schema uses 'type'.
+        // Seed script: type: h.category. So database column is 'type'.
+        
+        const typeMatch = activeCategory === "Semua" || item.type === activeCategory;
+        const severityMatch = activeSeverity === "Semua" || item.severity === activeSeverity;
+        const searchMatch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        return typeMatch && severityMatch && searchMatch;
     });
+
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center text-green-700 font-bold">Memuat data...</div>;
+    }
 
     const getSeverityColor = (severity) => {
         switch (severity.toLowerCase()) {
@@ -84,9 +96,7 @@ export default function HamaPage() {
                             <Link href={`/hama/${item.id}`} key={item.id}>
                                 <div className="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
                                     <div className="h-40 bg-gray-200 relative">
-                                        <div className="absolute inset-0 flex items-center justify-center text-6xl">
-                                            {item.thumbnail}
-                                        </div>
+                                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                                         <div className="absolute top-2 right-2">
                                             <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${getSeverityColor(item.severity)}`}>
                                                 {item.severity}
@@ -95,12 +105,12 @@ export default function HamaPage() {
                                     </div>
                                     <div className="p-4 flex-1 flex flex-col">
                                         <div className="flex items-start justify-between mb-2">
-                                            <span className={`px-2 py-1 rounded text-[10px] font-medium ${getCategoryColor(item.category)}`}>
-                                                {item.category}
+                                            <span className={`px-2 py-1 rounded text-[10px] font-medium ${getCategoryColor(item.type)}`}>
+                                                {item.type}
                                             </span>
                                         </div>
-                                        <h3 className="font-bold text-gray-800 mb-1">{item.nama}</h3>
-                                        <p className="text-xs text-gray-500 line-clamp-2 mb-3 flex-1">{item.shortDesc}</p>
+                                        <h3 className="font-bold text-gray-800 mb-1">{item.name}</h3>
+                                        <p className="text-xs text-gray-500 line-clamp-2 mb-3 flex-1">{item.description}</p>
                                         <div className="flex items-center text-green-600 text-xs font-semibold gap-1 mt-auto">
                                             Lihat Detail <ChevronRight size={14} />
                                         </div>

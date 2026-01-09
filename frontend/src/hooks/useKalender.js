@@ -1,54 +1,119 @@
 import { useState, useEffect } from 'react';
-import { KALENDER_DUMMY } from '@/data/kalenderDummy';
+import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/hooks/useAuth';
 
 export function useKalender() {
+  const { user } = useAuth();
   const [activities, setActivities] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load dari localStorage
+  // Load from Supabase on start or when user changes
   useEffect(() => {
-    const saved = localStorage.getItem('petaniMaju_kalender');
-    if (saved) {
-      setActivities(JSON.parse(saved));
+    if (user?.id) {
+        fetchActivities();
     } else {
-      setActivities(KALENDER_DUMMY);
+        setActivities([]);
+        setIsLoaded(true);
     }
-    setIsLoaded(true);
-  }, []);
+  }, [user]);
 
-  // Save ke localStorage
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('petaniMaju_kalender', JSON.stringify(activities));
+  const fetchActivities = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('calendar_events')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('date', { ascending: true });
+        
+        if (error) throw error;
+        setActivities(data || []);
+    } catch (error) {
+        console.error("Error fetching calendar:", error);
+    } finally {
+        setIsLoaded(true);
     }
-  }, [activities, isLoaded]);
-
-  const addActivity = (newActivity) => {
-    const activityWithId = { ...newActivity, id: Date.now() };
-    setActivities([...activities, activityWithId]);
   };
 
-  const updateActivity = (id, updatedData) => {
-    setActivities(activities.map(act => 
-      act.id === id ? { ...act, ...updatedData } : act
-    ));
+  const addActivity = async (newActivity) => {
+    // Optimistic UI Update
+    const tempId = Date.now();
+    const tempActivity = { ...newActivity, id: tempId, user_id: user.id };
+    
+    setActivities(prev => [...prev, tempActivity]);
+
+    try {
+        const { date, type, title, notes, weather } = newActivity;
+        const { data, error } = await supabase
+            .from('calendar_events')
+            .insert([{
+                user_id: user.id,
+                date,
+                type,
+                title,
+                notes,
+                weather
+            }])
+            .select() // Return the created row to get real ID
+            .single();
+
+        if (error) throw error;
+
+        // Replace temp activity with real one (with real ID)
+        setActivities(prev => prev.map(a => a.id === tempId ? data : a));
+
+    } catch (error) {
+        console.error("Error adding activity:", error);
+        alert("Gagal menambah aktivitas");
+        // Revert optimistic update
+        setActivities(prev => prev.filter(a => a.id !== tempId));
+    }
   };
 
-  const deleteActivity = (id) => {
-    if (confirm('Yakin ingin menghapus aktivitas ini?')) {
-      setActivities(activities.filter(act => act.id !== id));
+  const updateActivity = async (id, updatedData) => {
+    // Optimistic UI Update
+    const originalActivities = [...activities];
+    setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updatedData } : a));
+
+    try {
+        const { date, type, title, notes, weather } = updatedData;
+        const { error } = await supabase
+            .from('calendar_events')
+            .update({ date, type, title, notes, weather })
+            .eq('id', id)
+            .eq('user_id', user.id); 
+
+        if (error) throw error;
+    } catch (error) {
+        console.error("Error updating activity:", error);
+        alert("Gagal mengubah aktivitas");
+        setActivities(originalActivities); // Revert
+    }
+  };
+
+  const deleteActivity = async (id) => {
+    if (!confirm('Yakin ingin menghapus aktivitas ini?')) return;
+
+    // Optimistic UI Update
+    const originalActivities = [...activities];
+    setActivities(prev => prev.filter(a => a.id !== id));
+
+    try {
+        const { error } = await supabase
+            .from('calendar_events')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+        if (error) throw error;
+    } catch (error) {
+        console.error("Error deleting activity:", error);
+        alert("Gagal menghapus aktivitas");
+        setActivities(originalActivities); // Revert
     }
   };
 
   const getActivitiesByDate = (date) => {
     return activities.filter(act => act.date === date);
-  };
-
-  const getActivitiesByMonth = (year, month) => {
-    return activities.filter(act => {
-      const actDate = new Date(act.date);
-      return actDate.getFullYear() === year && actDate.getMonth() === month;
-    });
   };
 
   return {
@@ -57,7 +122,6 @@ export function useKalender() {
     updateActivity,
     deleteActivity,
     getActivitiesByDate,
-    getActivitiesByMonth,
     isLoaded
   };
 }

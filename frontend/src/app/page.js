@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CloudSun, Cloud, CloudRain, Droplets, Wind, MapPin, ChevronRight, Bug, Calendar, PlayCircle, Leaf, MessageSquare } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
+import { useWeather } from "@/hooks/useWeather";
 import { WEATHER_DUMMY } from "@/data/weatherDummy";
 import { FORUM_POSTS } from "@/data/forumDummy";
 
@@ -25,7 +26,8 @@ const RECENT_TIPS = [
 
 export default function Home() {
     const { user } = useAuth();
-    const [currentWeather, setCurrentWeather] = useState(WEATHER_DUMMY.current);
+    const { weather } = useWeather();
+    const currentWeather = weather.current;
     const [forumHighlights, setForumHighlights] = useState([]);
 
     useEffect(() => {
@@ -49,7 +51,7 @@ export default function Home() {
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="text-sm text-gray-500 mb-1">{getGreeting()},</p>
-                        <h1 className="text-xl font-bold text-gray-900">{user?.name || "Petani Maju"}</h1>
+                        <h1 className="text-xl font-bold text-gray-900">{user?.nama || "Petani Maju"}</h1>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
                             <MapPin size={14} className="text-green-600" />
                             <span>{user?.kabupaten || "Lokasi Anda"}, {user?.kecamatan}</span>
